@@ -191,6 +191,7 @@
             <input id="image_button" type="button" class="btn btn-primary">
             <input id="timelapse_button" type="button" class="btn btn-primary">
             <input id="md_button" type="button" class="btn btn-primary">
+            <input id="irled_button" type="button" class="btn btn-primary" onclick="toggleLedState()">
             <input id="halt_button" type="button" class="btn btn-danger">
          </div>
       </div>

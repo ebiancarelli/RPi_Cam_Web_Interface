@@ -149,25 +149,48 @@ function error_img () {
 
 function updatePreview(cycle)
 {
-	if (mjpegmode && cycle !== undefined && cycle == true)
-	{
-		mjpeg_img.src = "/updating.jpg";
-		setTimeout("mjpeg_img.src = \"cam_pic_new.php?time=\" + new Date().getTime()  + \"&pDelay=\" + preview_delay;", 1000);
-		return;
-	}
-	
-	if (previous_halted != halted)
-	{
-		if(!halted)
-		{
-			mjpeg_img.src = "cam_pic_new.php?time=" + new Date().getTime() + "&pDelay=" + preview_delay;			
-		}
-		else
-		{
-			mjpeg_img.src = "/unavailable.jpg";
-		}
-	}
-	previous_halted = halted;
+  if (mjpegmode && cycle !== undefined && cycle == true)
+  {
+    mjpeg_img.src = "/updating.jpg";
+    setTimeout("mjpeg_img.src = \"cam_pic_new.php?time=\" + new Date().getTime()  + \"&pDelay=\" + preview_delay;", 1000);
+    return;
+  }
+  
+  if (previous_halted != halted)
+  {
+    if(!halted)
+    {
+      mjpeg_img.src = "cam_pic_new.php?time=" + new Date().getTime() + "&pDelay=" + preview_delay;      
+    }
+    else
+    {
+      mjpeg_img.src = "/unavailable.jpg";
+    }
+  }
+  previous_halted = halted;
+}
+
+var ledState;
+
+function  getIRLedButtonText()
+{
+  if (ledState == 'on')
+    return 'IR OFF';
+  else
+    return 'IR ON';
+}
+function toggleLedState()
+{
+  if (ledState == 'on')
+  {
+    send_cmd_irled("led off");
+    ledState = 'off';
+  }
+  else
+  {
+    send_cmd_irled("led on");
+    ledState = 'on';
+  }
 }
 
 //
@@ -185,6 +208,12 @@ else {
 
 ajax_status.onreadystatechange = function() {
   if(ajax_status.readyState == 4 && ajax_status.status == 200) {
+    console.log('ajax readyState = ' + ajax_status.readyState);
+    console.log('ajax responseText = ' + ajax_status.responseText);
+
+
+    document.getElementById("irled_button").disabled = false;
+    document.getElementById("irled_button").value = getIRLedButtonText();
 
     if(ajax_status.responseText == "ready") {
       document.getElementById("video_button").disabled = false;
@@ -204,7 +233,7 @@ ajax_status.onreadystatechange = function() {
       document.getElementById("halt_button").onclick = function() {send_cmd("ru 0");};
       document.getElementById("preview_select").disabled = false;
       halted = 0;
-	    updatePreview();
+      updatePreview();
     }
     else if(ajax_status.responseText == "md_ready") {
       document.getElementById("video_button").disabled = true;
@@ -212,7 +241,7 @@ ajax_status.onreadystatechange = function() {
       document.getElementById("video_button").onclick = function() {};
       document.getElementById("image_button").disabled = false;
       document.getElementById("image_button").value = "record image";
-      document.getElementById("image_button").onclick = function() {send_cmd("im");};
+      document.getElementById("image_button").onclick = function() {};
       document.getElementById("timelapse_button").disabled = true;
       document.getElementById("timelapse_button").value = "timelapse start";
       document.getElementById("timelapse_button").onclick = function() {};
@@ -224,7 +253,7 @@ ajax_status.onreadystatechange = function() {
       document.getElementById("halt_button").onclick = function() {};
       document.getElementById("preview_select").disabled = false;
       halted = 0;
-	    updatePreview();
+      updatePreview();
     }
     else if(ajax_status.responseText == "video") {
       document.getElementById("video_button").disabled = false;
@@ -316,7 +345,7 @@ ajax_status.onreadystatechange = function() {
       document.getElementById("halt_button").onclick = function() {send_cmd("ru 1");};
       document.getElementById("preview_select").disabled = false;
       halted = 1;
-	    updatePreview();
+      updatePreview();
     }
     else if(ajax_status.responseText.substr(0,5) == "Error") alert("Error in RaspiMJPEG: " + ajax_status.responseText.substr(7) + "\nRestart RaspiMJPEG (./RPi_Cam_Web_Interface_Installer.sh start) or the whole RPi.");
     
@@ -385,6 +414,11 @@ else {
 
 function send_cmd (cmd) {
   ajax_cmd.open("GET","cmd_pipe.php?cmd=" + cmd,true);
+  ajax_cmd.send();
+}
+
+function send_cmd_irled (cmd) {
+  ajax_cmd.open("GET","cmd_pipe_irled.php?cmd=" + cmd,true);
   ajax_cmd.send();
 }
 
